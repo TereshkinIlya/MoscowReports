@@ -379,7 +379,7 @@ namespace Files
             }
 
             // Закрытие текущей книги
-            curWorkbook.Close();
+            curWorkbook.Close(true);
             
             return Table.AcumulativeTable;
         }

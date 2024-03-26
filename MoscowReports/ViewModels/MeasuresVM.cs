@@ -99,7 +99,7 @@ namespace MoscowReports
                         Thread myThread = new Thread(() =>
                         {
                             DataAnalyzer dataAnalyzer = new DataAnalyzer();
-                            object sourceTable = null;
+                            object? sourceTable = null;
 
                             switch (dataAnalyzer.CheckTypeOfTable(SourcePath))
                             {
@@ -126,6 +126,10 @@ namespace MoscowReports
                         });
                         myThread.IsBackground = true;
                         myThread.Start();
+                    }
+                    catch (ArgumentNullException ex)
+                    {
+                        MessageBox.Show(ex.Message);
                     }
                     catch (ArgumentException ex)
                     {
