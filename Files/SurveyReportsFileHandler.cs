@@ -55,6 +55,8 @@ namespace Files
             {
                 if (ExcelApp.Run != null)
                 {
+                    ExcelApp.Run.IgnoreRemoteRequests = false;
+
                     System.Runtime.InteropServices.Marshal.FinalReleaseComObject(ExcelApp.Run);
                     GC.Collect();
                     GC.WaitForPendingFinalizers();
@@ -380,13 +382,19 @@ namespace Files
                 AsEnumerable().
                 Select(coll => coll?.Field<string>(PiktsTable.PiktsTableColumns["ID ППМТ"][0] - 1)).
                 Distinct().
-                Where(value => value?.Length == 6);
+                Where(value => value?.Length >= 6);
+            
+            string idNumber;
 
             foreach (string? id in IDs)
             {
                 PIKTS piktsParams = new PIKTS();
 
                 if (id == null) continue;
+
+                idNumber = string.Join("", id.Where(symb => char.IsDigit(symb)));
+
+                if (idNumber == "") continue;
 
                 IEnumerable<DataRow> dataRows = piktsTable.
                 Select().
@@ -396,7 +404,7 @@ namespace Files
 
                 System.Data.DataTable dataTable = dataRows.CopyToDataTable();
 
-                piktsParams.ID = id;
+                piktsParams.ID = idNumber;
 
                 piktsParams.ConditionOfPipeline =
                     dataTable.Rows[0].Field<string>(PiktsTable.PiktsTableColumns["Состояние нитки"][0] - 1);

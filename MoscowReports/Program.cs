@@ -24,6 +24,8 @@ namespace MoscowReports
         {
             int id;
 
+            ExcelApp.Run.IgnoreRemoteRequests = false;
+
             GetWindowThreadProcessId(ExcelApp.Run.Hwnd, out id);
             Process process = Process.GetProcessById(id);
             process.Kill();
@@ -32,8 +34,8 @@ namespace MoscowReports
 
             Application.Restart();
             Environment.Exit(Environment.ExitCode);
-
         }
+
         [DllImport("user32.dll")]
         static extern int GetWindowThreadProcessId(int hWnd, out int lpdwProcessId);
     }

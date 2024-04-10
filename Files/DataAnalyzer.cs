@@ -96,11 +96,14 @@ namespace Files
             if (float.TryParse(value, out number) == false)
                 try
                 {
+                    value = value.Replace("*", "");
                     return float.Parse(Regex.Replace(value, @"\.+", ","));
                 }
                 catch (FormatException)
                 {
-                    Loger.Log(pathFile, cell, $"Проверьте значение: {value}");
+                    if(cell.Worksheet.Name != "12.1% и 10%, Нмеж.")
+                        Loger.Log(pathFile, cell, $"Проверьте значение: {value}");
+                    
                     return null;
                 }
             else

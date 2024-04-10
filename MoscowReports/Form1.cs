@@ -17,7 +17,7 @@ namespace MoscowReports
             InitializeComponent();
             this.FormClosing += new FormClosingEventHandler(this.Form1_FormClosing);
 
-            dateTimePicker1.Value = DateTime.Now.AddMonths(-6);
+            dateTimePicker1.Value = DateTime.Now.AddMonths(-3);
             Progress<object[]> _moscProgress = new Progress<object[]>();
             Progress<object[]> _measProgress = new Progress<object[]>();
 
@@ -82,6 +82,8 @@ namespace MoscowReports
 
             try
             {
+                ExcelApp.Run.IgnoreRemoteRequests = false;
+
                 GetWindowThreadProcessId(ExcelApp.Run.Hwnd, out id);
                 
                 Process process = Process.GetProcessById(id);

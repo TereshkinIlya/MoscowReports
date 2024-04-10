@@ -8,7 +8,7 @@ namespace Files
         private string RootFolder { get; set; }
         private string SavePath { get; set; }
         private DateTime LimitDate { get; set; }
-        private List<FileInfo> Files { get; set; }
+        private List<string> Files { get; set; }
         private string[] Years { get; set; }
         private IProgress<object[]> Progress { get; set; }
         public SurveyReportsFilesLoader(DateTime limitDate, string rootFolderPath,
@@ -28,56 +28,52 @@ namespace Files
         /// </summary>
         public override void GetInputFiles()
         {
-            GetAnnexesAsync();
-            CopyAnnexesAsync();
+            GetAnnexes();
+            CopyAnnexes();
         }
         /// <summary>
         /// Поиск приложений А с учетом предельной даты
         /// </summary>
-        /// <returns></returns>
-        private void GetAnnexesAsync()
+        private void GetAnnexes()
         {
-            // Создание входной точки для поиска приложений А
-            DirectoryInfo source = new DirectoryInfo(RootFolder);
-
             var options = new EnumerationOptions()
             {
                 IgnoreInaccessible = true,
                 RecurseSubdirectories = true
             };
-            List<DirectoryInfo> directories = new();
 
-            // Получение значений путей каталогов с учетом года выпуска отчета
+            List<string> directories = new();
+
             foreach (string year in Years)
             {
+                Progress.Report(new object[] { 1, 1, "Поиск каталогов с Приложениями А...", 2 });
                 try
                 {
-                    directories.AddRange(source.GetDirectories("*", options).
-                    Where(directory => directory.Name.Contains(year)).ToArray());
+                    directories.AddRange(Directory.GetDirectories(RootFolder, "*", options).
+                        Where(directory => directory.Contains(year)).ToArray());
                 }
-                catch (DirectoryNotFoundException)
+                catch (DirectoryNotFoundException ex)
                 {
-                    throw;
+                    Loger.Log(ex.Message);
                 }
             }
 
             // Если выбрана папка на локальном диске (не хранилище ОКУДР)
             if (directories.Count == 0)
-                directories.Add(source);
+                directories.Add(RootFolder);
 
-            // Получение значений путей файлов приложений А
-            foreach (DirectoryInfo directory in directories)
+            foreach (string directory in directories)
             {
                 Progress.Report(new object[] { 1, 1, "Поиск файлов Приложений А...", 2 });
                 try
                 {
-                    Files.AddRange(directory.GetFiles("*_А.xls*", options).
-                    Where(file => file.LastWriteTime.Date > LimitDate.Date
+                    Files.AddRange(Directory.GetFiles(directory, "*_А.xls*", options).
+                    Where(file => File.GetLastWriteTime(file) > LimitDate.Date
                     &&
-                    (file.Extension.EndsWith("xls") ||
-                     file.Extension.EndsWith("xlsx") ||
-                     file.Extension.EndsWith("xlsm")))
-                    .ToArray());
+                    (Path.GetExtension(file).EndsWith("xls") ||
+                    Path.GetExtension(file).EndsWith("xlsx") ||
+                    Path.GetExtension(file).EndsWith("xlsm"))
+                    ).ToArray());
                 }
                 catch (DirectoryNotFoundException ex)
                 {
@@ -101,31 +97,31 @@ namespace Files
         /// Копирование файлов на жесткий диск
         /// </summary>
         /// <returns></returns>
-        private void CopyAnnexesAsync()
+        private void CopyAnnexes()
         {
             int indexProgress = 1;
 
-            foreach (FileInfo file in Files)
+            foreach (string file in Files)
             {
                 try
                 {
                     // Пропуск временных (temp) файлов
-                    if (!file.Name.StartsWith("~$"))
+                    if (!Path.GetFileName(file).StartsWith("~$"))
                     {
-                        File.Copy(file.FullName, Path.Combine(SavePath, file.Name), true);
+                        File.Copy(file, Path.Combine(SavePath, Path.GetFileName(file)), true);
                     }
                 }
                 catch (FileNotFoundException ex)
                 {
-                    Loger.Log(file.FullName, ex.Message);
+                    Loger.Log(Path.GetFileName(file), ex.Message);
                 }
                 catch (UnauthorizedAccessException ex)
                 {
-                    Loger.Log(file.FullName, ex.Message);
+                    Loger.Log(Path.GetFileName(file), ex.Message);
                 }
                 catch (Exception ex)
                 {
-                    Loger.Log(file.FullName, ex.Message);
+                    Loger.Log(Path.GetFileName(file), ex.Message);
                 }
                 Progress.Report(new object[] { Files.Count(), indexProgress++, "Копирование файлов Приложений А...", 1 });
             }

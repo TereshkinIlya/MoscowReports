@@ -29,7 +29,7 @@ namespace MoscowReports.ViewModels
         public MoscowReportVM(IProgress<object[]> progress)
         {
             
-            _limitDate = DateTime.Now.AddMonths(-6);
+            _limitDate = DateTime.Now.AddMonths(-3);
             _folderBrowserDialog = new FolderBrowserDialog();
             _openFileDialog = new OpenFileDialog();
             _openFileDialog.Filter = _filter;
